@@ -15,24 +15,151 @@
       }
     });
   });
-  
-  //fetch JSON
-  let jsonData = null;
-  fetch('config.json')
-  .then(response => response.json())
-  .then(data => {
-    jsonData = data;
-    version = jsonData.setup.version;
-    const versionElement = document.getElementById('version');
-    versionElement.innerHTML = version;
-  
-  })
-  .catch(error => console.error('Error:', error));
-  
-  //clearing upon refresh
-  window.onload = function() {
-    clearing();
+
+
+  async function fetchConfig() {
+    try {
+      const response = await fetch('config.json');
+      const data = await response.json();
+
+      version = data.setup.version;
+      const versionElement = document.getElementById('version');
+      versionElement.innerHTML = version;
+ 
+      return data;
+    } catch (error) {
+      console.error('Error Fetching Config:', error);
+      throw error; // Re-throw the error to handle it outside this function if needed
+    }
+  }
+
+  async function loadSetup() {
+    try {
+      let jsonData = await fetchConfig();
+      anglecalc(jsonData)
+      updatePastInchOptions(jsonData);
+      return jsonData;
+
+      
+    } catch (error) {
+      // Handle any errors that occurred during fetching or processing
+      console.error('Async Fetch Error:', error);
+    }
+  }
+  clearing();
+  loadSetup(); //called on page load to setup the initial values
+
+  // Async Setup Functions needed
+  // fetchConfig
+  // calculate
+  // winderSetup Needs: anglecalc, updatepastinchoptions, calculate
+  // nosingsetup Needs: updatepastinchoptions, calculate
+
+  async function winderSetup() {
+    try {
+      let jsonData = await fetchConfig();
+      anglecalc(jsonData)
+      updatePastInchOptions(jsonData);
+      calculate(jsonData);
+      return jsonData;
+    } catch (error) {
+      // Handle any errors that occurred during fetching or processing
+      console.error('Async Fetch Error:', error);
+    }
+  }
+
+  async function nosingSetup() {
+    try {
+      let jsonData = await fetchConfig();
+        //update the pastinch options and run the calculate function | this is for the nosing checkbox
+        updatePastInchOptions(jsonData);
+        calculate(jsonData);
+  return jsonData;
+    } catch (error) {
+      // Handle any errors that occurred during fetching or processing
+      console.error('Fetch Error:', error);
+    }
+  }
+
+  function updatePastInchOptions(jsonData) {
+  const winderType = document.getElementById("winderType").value;
+  const pastInchSelect = document.getElementById("pastInch");
+  //THIS IS SHITTY CODE WOW, im basically just catching errors here
+  let pastInchOptions;
+  try {
+    const nosing = document.getElementById('nosingCheckbox').checked;
+    if (nosing) {
+      pastInchOptions = jsonData.winders[winderType].nosingangles?.pastinch;
+    } else {
+      pastInchOptions = jsonData.winders[winderType].angles?.pastinch;
+    }
+  }
+  catch(err) {
+    console.log("ERROR", err.message);
+    anglecalc(jsonData);
+    return;
+  }
+  pastInchSelect.innerHTML = '';
+  if (pastInchOptions === undefined) {
+    console.warn(`No pastInch options found for winderType: ${winderType}`);
+    const defaultOption = document.createElement("option");
+    defaultOption.value = 0;
+    defaultOption.textContent = "No Options Available";
+    pastInchSelect.appendChild(defaultOption);
+    anglecalc(jsonData);
+    return;
+  }
+  const defaultOption = document.createElement("option");
+  defaultOption.value = "2";
+  defaultOption.textContent = "2\"";
+  pastInchSelect.appendChild(defaultOption);
+  anglecalc(jsonData);
+  Object.keys(pastInchOptions).forEach(option => {
+    const optionElement = document.createElement("option");
+    optionElement.value = option;
+    optionElement.textContent = option + "\"";
+    pastInchSelect.appendChild(optionElement);
+
+});
+}
+
+  function anglecalc(jsonData) {  
+  const inchfind = document.getElementById('pastInch').value;
+  const winderType = document.getElementById('winderType').value;
+  const nosing = document.getElementById('nosingCheckbox').checked;
+  if (nosing) {
+    if (inchfind == 0 || inchfind == 2) {
+      var AngleObject = {
+      "a": jsonData.winders[winderType].nosingangles.a,
+      "b": jsonData.winders[winderType].nosingangles.b
   };
+  }
+  else {
+    var AngleObject = {
+      "a": jsonData.winders[winderType].nosingangles.pastinch[inchfind].a,
+      "b": jsonData.winders[winderType].nosingangles.pastinch[inchfind].b
+  };
+  }
+}
+else {
+  if (inchfind == 0 || inchfind == 2) {
+    var AngleObject = {
+    "a": jsonData.winders[winderType].angles.a,
+    "b": jsonData.winders[winderType].angles.b
+};
+}
+else {
+  var AngleObject = {
+    "a": jsonData.winders[winderType].angles.pastinch[inchfind].a,
+    "b": jsonData.winders[winderType].angles.pastinch[inchfind].b
+};
+}
+}
+
+ // Display angles in the div with id 'angles'
+ document.getElementById('angles').innerHTML = `A: ${AngleObject.a}&deg;<br>B: ${AngleObject.b}&deg;`;
+return AngleObject;
+}
 
   function toggleDirection(direction) {
     const leftButton = document.getElementById('leftButton');
@@ -41,13 +168,21 @@
     if (direction === 'left') {
       leftButton.classList.add('active');
       rightButton.classList.remove('active');
-      console.log('left');
-      // Add logic here for when Left button is clicked
     } else if (direction === 'right') {
       rightButton.classList.add('active');
       leftButton.classList.remove('active');
-      console.log('right');
-      // Add logic here for when Right button is clicked
+    }
+  }
+
+  function toggleAdvancedMenu() {
+    var advancedMenu = document.getElementById("advancedMenu");
+    var toggleButton = document.getElementById("toggleAdvancedMenu");
+    if (advancedMenu.style.display === "block") {
+      advancedMenu.style.display = "none";
+      toggleButton.classList.remove("active");
+    } else {
+      advancedMenu.style.display = "block";
+      toggleButton.classList.add("active");
     }
   }
 
@@ -83,9 +218,11 @@
     // its overshot if greater than width, then it adds sx/s2 to boards
   }
 
-  function stickover(angle, boards) {
+  function stickover(angle, board) {
     //this function uses the angle and boards to calculate the exact mark of the edge of the board, from here i can add sticks to the s1 and s3
-    const over = boards / Math.cos(angle * (Math.PI / 180));
+    const over = board / Math.cos(angle * (Math.PI / 180));
+    const half = over / 2;
+    console.log("Over:", over);
     return over;
   }
 
@@ -115,8 +252,10 @@
     };
   }
 
-  function calculate() {
-    //variable setup
+  async function calculate() {
+    try {
+      let jsonData = await fetchConfig();
+      //variable setup
     const winderType = document.getElementById('winderType').value;
     let width = parseFloat(document.getElementById('widthInput').value);
     let height = parseFloat(document.getElementById('heightInput').value);
@@ -127,24 +266,12 @@
     const NSL = document.getElementById('NSL');
     const NSR = document.getElementById('NSR');
     const NSB = document.getElementById('NSB');
+    const AngleObject = anglecalc(jsonData);
     if (widthFraction !== "") {
       width += eval(widthFraction);
     }
     if (heightFraction !== "") {
       height += eval(heightFraction);
-    }
-    
-    //grab angles if nosing true
-    if (nosing) {
-      var AngleObject = {
-      "a": jsonData.winders[winderType].nosingangles.a,
-      "b": jsonData.winders[winderType].nosingangles.b
-    };
-    } else {
-      var AngleObject = {
-      "a": jsonData.winders[winderType].angles.a,
-      "b": jsonData.winders[winderType].angles.b
-    };
     }
 
     //new json setup for arguments all in one object
@@ -166,45 +293,51 @@
       "angles": AngleObject,
       "shifts": jsonData.winders[winderType].shifts
   };
-
+    console.log("Final Object:", JsonObject);
    
     switch(winderType) {
       case '2StepHanger':
-      calculate2StepHanger(size, checkboxes, options, angles, shifts);
+      calculate2StepHanger(JsonObject);
       break;
       case '3StepHanger':
       calculate3StepHanger(JsonObject);
       break;
       case '2StepDOT':
-      calculate2StepDOT(size, checkboxes, options, angles, shifts);
+      calculate2StepDOT(JsonObject);
       break;
       case '3StepDOT':
       calculate3StepDOT(JsonObject);
       break;
       case '2Step3_5Post':
-      calculate2Step3_5Post(size, checkboxes, options, angles, shifts);
+      calculate2Step3_5Post(JsonObject);
       break;
       case '3Step3_5Post':
       calculate3Step3_5Post(JsonObject);
       break;
       case '2Step5_5Post':
-      calculate2Step5_5Post(size, checkboxes, options, angles, shifts);
+      calculate2Step5_5Post(JsonObject);
       break;
       case '3Step5_5Post':
       calculate3Step5_5Post(JsonObject);
       break;
       case '2StepWrap':
-      calculate2StepWrap(size, checkboxes, options, angles, shifts);
+      calculate2StepWrap(JsonObject);
       break;
       case '3StepWrap':
-      calculate3StepWrap(size, checkboxes, options, angles, shifts);
+      calculate3StepWrap(JsonObject);
       break;
       default:
       console.error(`Unsupported winder type: ${winderType}`);
     }
+    
+    } catch (error) {
+      // Handle any errors that occurred during fetching or processing
+      console.error('Fetch Error:', error);
+    }
+    
   }
 
-  function calculate2StepHanger(size, checkboxes, options, angles, shifts) {
+  function calculate2StepHanger(JsonObject) {
     // Core Math Calculations
     size[0] -= 0.5;
     const s1 = size[0] * Math.tan(angles[0] * (Math.PI / 180));
@@ -279,7 +412,7 @@
     createResult(width, step1, hypotenuse2, step2, stepx, hypotenuse3, step3);
   }
 
-  function calculate2StepDOT(size, checkboxes, options, angles, shifts) {
+  function calculate2StepDOT(JsonObject) {
     // Core Math Calculations
     const s1 = size[0] * Math.tan(angles[0] * (Math.PI / 180));
     const s3 = size[1] * Math.tan(angles[1] * (Math.PI / 180));
@@ -409,7 +542,7 @@
     createResult(width, step1, hypotenuse2, step2, stepx, hypotenuse3, step3, stepsq);
   }
   
-  function calculate3StepWrap(size, checkboxes, options, angles, shifts) {
+  function calculate3StepWrap(JsonObject) {
     
     // Core Math Calculations
     const s1 = size[0] * Math.tan(angles[0] * (Math.PI / 180));

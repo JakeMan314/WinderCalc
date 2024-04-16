@@ -10,15 +10,34 @@
 <body>
   <h1>Winder Calculator</h1>
   <div class="container">
+    <div id="advancedMenu">
+      <!--   
+      Hiding these options for now, as they are not finished yet
+        <div class="button-group">
+          <button id="leftButton" class="toggle-button left-button active" onclick="toggleDirection('left')">Left</button>
+          <button id="rightButton" class="toggle-button right-button" onclick="toggleDirection('right')">Right</button>
+        </div>
+        -->
+  
+        <select id="pastInch" onchange="calculate()">
+          <option value="">Inches Past / 2"</option>
+          <option value="1/16">Error</option>
+        </select>
+       <!--   <div class="input-group">
+          <input type="text" id="angleA">
+          <input type="text" id="angleB">
+        </div> -->
+        <div id="angles">
+        </div>
+    </div>
     <div class="inputs">
-      <select id="winderType" onchange="calculate()">
+      <select id="winderType" onchange="winderSetup()">
         <option value="3StepHanger">3 Step Hanger</option>
         <option value="3StepDOT">3 Step DOT (Beta)</option>
         <option value="3Step3_5Post">3 Step 3.5 Post (Beta)</option>
         <option value="3Step5_5Post">3 Step 5.5 Post</option>
         <!--    
         Hiding these options for now, as they are not finished yet
-
         <option value="2StepHanger" selected>2 Step Hanger (In Progress)</option>
         <option value="2StepDOT">2 Step DOT (In Progress)</option>
         <option value="3StepDOT">3 Step DOT</option>
@@ -30,20 +49,11 @@
         -->
       </select>
       <div class="checkbox-container">
-        <input type="checkbox" id="nosingCheckbox" onchange="calculate()">
+        <input type="checkbox" id="nosingCheckbox" onchange="nosingSetup()">
         <label class="nosing-label" for="nosingCheckbox">
           Nosing
         </label>
       </div> 
-       <!--    
-        Hiding these options for now, as they are not finished yet
-
-      <div class="button-group">
-        <button id="leftButton" class="toggle-button left-button active" onclick="toggleDirection('left')">Left</button>
-        <button id="rightButton" class="toggle-button right-button" onclick="toggleDirection('right')">Right</button>
-      </div>
-      -->
-
       <input type="text" id="widthInput" placeholder="Enter Width value" onchange="calculate()">
       <select id="widthFraction" onchange="calculate()">
         <option value="">Select fraction / None</option>
@@ -102,17 +112,11 @@
         </div>
         <button onclick="calculate()">Calculate</button>
         <button id="clear" onclick="clearing()">Clear</button>
+        <button id="toggleAdvancedMenu" onclick="toggleAdvancedMenu()">Advanced (Beta)</button>
       </div>
       <div class="outputs">
         <div id="result">
         </div>
-        <!-- <div class="bottom">
-          <input type="checkbox" id="nosingCheckbox" onchange="calculate()">
-          <label class="nosing-label" for="nosingCheckbox">
-            Nosing
-          </label>
-        </div> 
-      -->
       </div>
     </div>
             <footer id="myFooter">

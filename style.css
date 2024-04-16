@@ -182,3 +182,54 @@ boxlabel {
   margin: 10px auto; /* Center the div horizontally */
   padding: 10px 10px 10px 0px; /* Add padding */
 }
+
+#advancedButton {
+  background-color: #4b514b;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+#advancedMenu {
+  display: none;
+  max-width: 40%;
+  position: absolute;
+  top: 0;
+  right: 100%; /* Position the menu to the left of the main container */
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  justify-content: space-between;
+  padding: 10px;
+  width: 40%;
+  height: 100%; /* Match the height of the regular container */
+  box-sizing: border-box; /* Include padding and border in the height calculation */
+  margin-right: 20px;
+}
+
+#toggleAdvancedMenu {
+  background-color: #4b514b; /* Change button color to green when active */
+}
+
+#toggleAdvancedMenu.active {
+  background-color: #4CAF50; /* Change button color to green when active */
+}
+
+#toggleAdvancedMenu:hover {
+  background-color: #409443;
+}
+
+.input-group {
+  display: block;
+  width: 20px; /* Adjust width as needed */
+  margin-right: 20px; /* Adjust spacing between input groups */
+
+}
+
+#angles {
+  display: flex;
+  justify-content: center;
+}
